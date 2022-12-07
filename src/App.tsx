@@ -24,27 +24,28 @@ const columnHelper = createColumnHelper<Product>();
 const columns = [
   columnHelper.accessor('id', {
     header: () => <span>#</span>,
-    cell: (info) => <span className='p-2' >{info.getValue()}</span>,
+    cell: (info) => <span className='p-2'>{info.getValue()}</span>
   }),
   columnHelper.accessor((row) => row.title, {
     id: 'title',
-    cell: (info) => <span>{info.getValue()}</span>,
-    header: () => <span>Title</span>,
+    cell: (info) => <div className='p-1'>{info.getValue()}</div>,
+    header: () => <span>Title</span>
   }),
   columnHelper.accessor('price', {
     header: () => 'Price',
-    cell: (info) => <div>{`$${info.getValue()}`}</div>,
+    cell: (info) => <div className='p-1 capitalize text-center'>{`$${info.getValue()}`}</div>
   }),
   columnHelper.accessor('description', {
     header: () => <span>Description</span>,
-    cell: (info) => <i>{info.getValue()}</i>,
+    cell: (info) => <div className='p-1'>{info.getValue()}</div>
   }),
   columnHelper.accessor('category', {
     header: 'Category',
+    cell: (info) => <div className='p-1 capitalize'>{info.getValue()}</div>
   }),
   columnHelper.accessor('image', {
     header: 'Image',
-    cell: (info) => <img src={info.getValue()} alt='product' className='h-full ' />
+    cell: (info) => <img src={info.getValue()} alt='product' className='h-full p-1' />
   }),
   columnHelper.accessor('rating', {
     header: 'Rating',
@@ -71,11 +72,12 @@ function App() {
     ['productsData'],
     getProducts,
     {
-      // refetchOnWindowFocus: false, Use this to prevent refetching when window is focused
+      refetchOnWindowFocus: false, // Use this to prevent refetching when window is focused
+      refetchInterval: 60000 // Use this to refetch on interval
       // refetchOnMount: false, Use this to prevent refetching when component is mounted
       // refetchOnReconnect: false, Use this to prevent refetching when connection is reconnected
       // refetchInterval: false, Use this to prevent refetching on interval
-      // refetchIntervalInBackground: false, Use this to prevent refetching on interval when window is not focused
+      // refetchIntervalInBackground: false, Use this to prevent refetching on interval when window is not focused,
     }
   );
   const table = useReactTable({
@@ -85,21 +87,25 @@ function App() {
   });
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <div className='w-full h-screen flex items-center justify-center'>
+        <AiOutlineLoading />
+      </div>
+    );
   }
 
   return (
-    <div className='bg-pink-100 p-2'>
+    <div className='bg-rose-50 p-2'>
       <div className='flex justify-center align-middle font-semibold my-2 w-full bg-gray-50 rounded-sm text-lg'>
         Welcome to React Table
       </div>
       <div className='flex justifiy-start overflow-x-auto'>
-        <table className='overflow-x-auto border border-collapse border-blue-700 bg-slate-50'>
+        <table className='overflow-x-auto border-collapse bg-slate-50'>
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <th key={header.id}>
+                  <th className='border border-gray-200 ' key={header.id}>
                     {header.isPlaceholder
                       ? null
                       : flexRender(header.column.columnDef.header, header.getContext())}
@@ -109,10 +115,12 @@ function App() {
             ))}
           </thead>
           <tbody>
-            {table.getRowModel().rows.map((row) => (
-              <tr key={row.id}>
+            {table.getRowModel().rows.map((row, i) => (
+              <tr className={i % 2 ? 'bg-gray-50' : 'bg-white'} key={row.id}>
                 {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
+                  <td className='border border-gray-200 ' key={cell.id}>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </td>
                 ))}
               </tr>
             ))}
