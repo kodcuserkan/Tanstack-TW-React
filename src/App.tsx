@@ -5,7 +5,7 @@ import {
   getCoreRowModel,
   useReactTable
 } from '@tanstack/react-table';
-import { AiTwotoneStar } from 'react-icons/ai';
+import { AiOutlineLoading, AiTwotoneStar } from 'react-icons/ai';
 import { FaUsers } from 'react-icons/fa';
 import { getProducts } from './api';
 
@@ -24,37 +24,30 @@ const columnHelper = createColumnHelper<Product>();
 const columns = [
   columnHelper.accessor('id', {
     header: () => <span>#</span>,
-    cell: (info) => info.getValue(),
-    footer: (info) => info.column.id
+    cell: (info) => <span className='p-2' >{info.getValue()}</span>,
   }),
   columnHelper.accessor((row) => row.title, {
     id: 'title',
     cell: (info) => <span>{info.getValue()}</span>,
     header: () => <span>Title</span>,
-    footer: (info) => info.column.id
   }),
   columnHelper.accessor('price', {
     header: () => 'Price',
-    cell: (info) => <i>{`$${info.getValue()}`}</i>,
-    footer: (info) => info.column.id
+    cell: (info) => <div>{`$${info.getValue()}`}</div>,
   }),
   columnHelper.accessor('description', {
     header: () => <span>Description</span>,
     cell: (info) => <i>{info.getValue()}</i>,
-    footer: (info) => info.column.id
   }),
   columnHelper.accessor('category', {
     header: 'Category',
-    footer: (info) => info.column.id
   }),
   columnHelper.accessor('image', {
     header: 'Image',
-    footer: (info) => info.column.id,
     cell: (info) => <img src={info.getValue()} alt='product' className='h-full ' />
   }),
   columnHelper.accessor('rating', {
     header: 'Rating',
-    footer: (info) => info.column.id,
     cell: (info) => {
       const { rate, count } = info.getValue();
       return (
@@ -74,11 +67,17 @@ const columns = [
 ];
 
 function App() {
-  const { data, isLoading, isLoadingError, isFetched, refetch, error, isError } = useQuery(
+  const { data, isLoading, isFetching, isFetched, refetch, error, isError } = useQuery(
     ['productsData'],
-    getProducts
+    getProducts,
+    {
+      // refetchOnWindowFocus: false, Use this to prevent refetching when window is focused
+      // refetchOnMount: false, Use this to prevent refetching when component is mounted
+      // refetchOnReconnect: false, Use this to prevent refetching when connection is reconnected
+      // refetchInterval: false, Use this to prevent refetching on interval
+      // refetchIntervalInBackground: false, Use this to prevent refetching on interval when window is not focused
+    }
   );
-  const rerender = refetch;
   const table = useReactTable({
     data,
     columns,
@@ -91,49 +90,56 @@ function App() {
 
   return (
     <div className='bg-pink-100 p-2'>
-      <table className='overflow-x-auto border border-collapse border-blue-700 bg-slate-50'>
-        <thead>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <tr key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <th key={header.id}>
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(header.column.columnDef.header, header.getContext())}
-                </th>
-              ))}
-            </tr>
-          ))}
-        </thead>
-        <tbody>
-          {table?.getRowModel() &&
-            table?.getRowModel().rows &&
-            table.getRowModel().rows.map((row) => (
+      <div className='flex justify-center align-middle font-semibold my-2 w-full bg-gray-50 rounded-sm text-lg'>
+        Welcome to React Table
+      </div>
+      <div className='flex justifiy-start overflow-x-auto'>
+        <table className='overflow-x-auto border border-collapse border-blue-700 bg-slate-50'>
+          <thead>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <tr key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <th key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(header.column.columnDef.header, header.getContext())}
+                  </th>
+                ))}
+              </tr>
+            ))}
+          </thead>
+          <tbody>
+            {table.getRowModel().rows.map((row) => (
               <tr key={row.id}>
                 {row.getVisibleCells().map((cell) => (
                   <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
                 ))}
               </tr>
             ))}
-        </tbody>
-        <tfoot>
-          {table.getFooterGroups().map((footerGroup) => (
-            <tr key={footerGroup.id}>
-              {footerGroup.headers.map((header) => (
-                <th key={header.id}>
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(header.column.columnDef.footer, header.getContext())}
-                </th>
-              ))}
-            </tr>
-          ))}
-        </tfoot>
-      </table>
-      <div className='h-4' />
-      <button onClick={() => rerender()} className='border p-2 rounded-lg bg-gray-800 text-white'>
-        Rerender
-      </button>
+          </tbody>
+          <tfoot>
+            {table.getFooterGroups().map((footerGroup) => (
+              <tr key={footerGroup.id}>
+                {footerGroup.headers.map((header) => (
+                  <th key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(header.column.columnDef.footer, header.getContext())}
+                  </th>
+                ))}
+              </tr>
+            ))}
+          </tfoot>
+        </table>
+      </div>
+
+      <div className='flex justify-center align-middle p-3 gap-2'>
+        <button
+          onClick={() => refetch()}
+          className='border w-96 h-12 flex items-center justify-center p-2 rounded-lg bg-gray-800 text-white'>
+          {isFetching ? <AiOutlineLoading /> : 'Refetch'}
+        </button>
+      </div>
     </div>
   );
 }
